@@ -1,37 +1,31 @@
 package main
 
 import (
-	"database/sql"
 	"log"
 	"net/http"
+	"os"
 
+	"github.com/Brennon-Oliveira/academiQ/database"
+	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
 )
 
 func main() {
 
-	log.Println("Starting academiQ-api")
-	connStr := "user=postgres dbname=academiq password=postgres host=localhost sslmode=disable"
-	db, err := sql.Open("postgres", connStr)
-	if err != nil {
-		log.Fatal(err)
+	//env or default 7301
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "7301"
 	}
 
-	db.Begin()
+	log.Println("Starting academiQ-api")
 
-	log.Println("Connected to database")
+	database.Connect()
 
-	http.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("pong"))
+	r := gin.Default()
+	r.GET("/ping", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"message": "pong"})
 	})
 
-	// auth
-
-	http.HandleFunc("/auth/login", login)
-
-	http.ListenAndServe(":7301", nil)
-}
-
-func login(w http.ResponseWriter, r *http.Request) {
-
+	r.Run(port)
 }
